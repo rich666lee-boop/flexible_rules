@@ -228,6 +228,7 @@ const PLAN = [
 ];
 let qIndex = 0, current = null, selected = false;
 let curRule = "color", curLevel = 0, lastRule = null;
+let charTurn = 0;  // 角色輪流索引：0=阿威、1=小晴，每題遞增，嚴格交替
 
 const ruleBar = document.getElementById("ruleBar");
 const cardEl  = document.getElementById("card");
@@ -299,10 +300,14 @@ function nextQuestion(){
   if(switched){
     ruleBar.classList.add("pop");
     setTimeout(()=>ruleBar.classList.remove("pop"), 320);
-    // 規則綁角色：顏色→小晴、形狀→阿威，兩人一定都會出現
-    showChar(curRule==="color" ? "xq_think" : "awei_think");
   }
   lastRule = curRule;
+
+  // 每一題都顯示角色，阿威、小晴嚴格交替
+  const who = (charTurn % 2 === 0) ? "awei_happy" : "xq_happy";
+  charTurn++;
+  showChar(who);
+
   renderCard();
   renderBaskets(lv);
   refreshProgress();
@@ -382,7 +387,7 @@ function endGame(){
   playCorrect();
 }
 function startGame(){
-  qIndex = 0; lastRule = null; selected = false;
+  qIndex = 0; lastRule = null; selected = false; charTurn = 0;
   getCtx();
   document.getElementById("startScreen").classList.add("hide");
   document.getElementById("endScreen").classList.add("hide");
