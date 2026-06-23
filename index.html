@@ -139,6 +139,7 @@
 <div id="finger">👈</div>
 
 <script>
+/* 語音：只用在「規則切換宣布」這一處 */
 function speak(text){
   try {
     const u = new SpeechSynthesisUtterance(text);
@@ -146,6 +147,46 @@ function speak(text){
     window.speechSynthesis.speak(u);
   } catch(e){}
 }
+
+/* 音效：Web Audio 即時合成，不需音檔 */
+let audioCtx = null;
+function getCtx(){
+  if(!audioCtx){
+    try { audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ audioCtx = null; }
+  }
+  return audioCtx;
+}
+// 答對：清脆上行兩音（叮咚）
+function playCorrect(){
+  const ctx = getCtx(); if(!ctx) return;
+  const now = ctx.currentTime;
+  [[880, 0], [1320, 0.12]].forEach(([freq, t])=>{
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine"; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, now+t);
+    gain.gain.exponentialRampToValueAtTime(0.3, now+t+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now+t+0.18);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now+t); osc.stop(now+t+0.2);
+  });
+}
+// 答錯：低沉短促一聲（嘟）
+function playWrong(){
+  const ctx = getCtx(); if(!ctx) return;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "triangle"; osc.frequency.setValueAtTime(220, now);
+  osc.frequency.exponentialRampToValueAtTime(150, now+0.18);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.25, now+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now+0.25);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(now); osc.stop(now+0.28);
+}
+
 const CHARS = {
   awei_happy:  "awei_happy.png",
   awei_smile:  "awei_smile.png",
@@ -242,11 +283,6 @@ function nextQuestion(){
     setTimeout(()=>highlightCorrectBasket(), switched ? 1400 : 400);
   }
   pointFinger(cardEl);
-  if(!switched){
-    setTimeout(()=>{
-      speak(curRule==="color" ? "看看它是什麼顏色？" : "看看它是什麼形狀？");
-    }, 250);
-  }
 }
 function renderCard(){
   cardEl.className = "";
@@ -279,15 +315,17 @@ function highlightCorrectBasket(){
 }
 cardEl.addEventListener("click", ()=>{
   if(qIndex >= PLAN.length) return;
+  getCtx();  // 第一次互動時喚醒音訊
   selected = !selected;
   cardEl.classList.toggle("selected", selected);
   pointFinger(selected ? basketsEl : cardEl);
 });
 function onBasket(key, basketEl){
   if(qIndex >= PLAN.length) return;
-  if(!selected){ speak("先點一下卡片喔！"); pointFinger(cardEl); return; }
+  if(!selected){ pointFinger(cardEl); return; }
   const correct = curRule==="color" ? current.color : current.shape;
   if(key === correct){
+    playCorrect();
     finger.style.display = "none"; clearHints();
     const rect = basketEl.getBoundingClientRect();
     const crect = cardEl.getBoundingClientRect();
@@ -296,13 +334,12 @@ function onBasket(key, basketEl){
       `translate(${rect.left+rect.width/2-(crect.left+crect.width/2)}px,${rect.top+rect.height/2-(crect.top+crect.height/2)}px) scale(.3)`;
     cardEl.style.opacity = "0";
     cardEl.classList.remove("selected"); selected = false;
-    speak(pick(["答對了！","好棒！","你做到了！","太厲害了！"]));
     qIndex++;
     setTimeout(nextQuestion, 850);
   } else {
+    playWrong();
     cardEl.classList.add("shake");
     setTimeout(()=>cardEl.classList.remove("shake"), 420);
-    speak(curRule==="color" ? "現在是按顏色分喔，找一樣的顏色！" : "現在是按形狀分喔，找一樣的圖案！");
   }
 }
 function clearHints(){ [...basketsEl.children].forEach(b=>b.classList.remove("hint")); }
@@ -317,15 +354,15 @@ function endGame(){
   finger.style.display = "none";
   charBox.classList.remove("show");
   document.getElementById("endScreen").classList.remove("hide");
-  speak("全部分完囉！你好厲害！");
+  playCorrect();
 }
 function startGame(){
   qIndex = 0; lastRule = null; selected = false;
+  getCtx();  // 喚醒音訊
   document.getElementById("startScreen").classList.add("hide");
   document.getElementById("endScreen").classList.add("hide");
   buildProgress();
   showChar("awei_smile", 2200);
-  speak("我們來玩分類遊戲！先看看上面的規則喔！");
   setTimeout(nextQuestion, 900);
 }
 document.getElementById("startBtn").addEventListener("click", startGame);
