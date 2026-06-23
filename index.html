@@ -5,42 +5,257 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>規則變變變</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { height: 100%; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; }
   body {
-    font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
-    background: linear-gradient(160deg, #fff4e0 0%, #ffe8f0 100%);
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden; user-select: none;
+    font-family:"Microsoft JhengHei","PingFang TC",sans-serif;
+    background:linear-gradient(160deg,#fff4e0 0%,#ffe8f0 100%);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden; user-select:none;
   }
-  #app {
-    width: 100%; max-width: 900px; height: 100vh; max-height: 100vh;
-    display: flex; flex-direction: column; position: relative;
-  }
+  #app { width:100%; max-width:900px; height:100vh; max-height:100vh; display:flex; flex-direction:column; position:relative; }
   #ruleBar {
-    flex: 0 0 auto; margin: 14px auto 6px; padding: 12px 28px;
-    border-radius: 999px; font-size: 26px; font-weight: 900;
-    color: #fff; text-align: center; box-shadow: 0 6px 0 rgba(0,0,0,.12);
-    transition: background .4s, transform .3s; letter-spacing: 2px;
+    flex:0 0 auto; margin:14px auto 6px; padding:12px 28px;
+    border-radius:999px; font-size:26px; font-weight:900;
+    color:#fff; text-align:center; box-shadow:0 6px 0 rgba(0,0,0,.12);
+    transition:background .4s, transform .3s; letter-spacing:2px;
   }
-  #ruleBar.color { background: linear-gradient(90deg,#ff6b6b,#ffa94d,#ffd43b,#69db7c,#4dabf7); }
-  #ruleBar.shape { background: linear-gradient(90deg,#9775fa,#748ffc); }
-  #ruleBar.pop { transform: scale(1.12); }
-  #progress { flex: 0 0 auto; display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; }
-  .pdot { width: 12px; height: 12px; border-radius: 50%; background: #ffffff; box-shadow: inset 0 0 0 2px #ffc9c9; }
-  .pdot.done { background: #ff8787; box-shadow: none; }
-  .pdot.now  { background: #ffd43b; box-shadow: 0 0 0 4px #fff3bf; }
-  #cardZone {
-    flex: 1 1 auto; display: flex; align-items: center; justify-content: center;
-    position: relative; min-height: 0;
-  }
+  #ruleBar.color { background:linear-gradient(90deg,#ff6b6b,#ffa94d,#ffd43b,#69db7c,#4dabf7); }
+  #ruleBar.shape { background:linear-gradient(90deg,#9775fa,#748ffc); }
+  #ruleBar.pop { transform:scale(1.12); }
+  #progress { flex:0 0 auto; display:flex; gap:8px; justify-content:center; margin-bottom:6px; }
+  .pdot { width:12px; height:12px; border-radius:50%; background:#fff; box-shadow:inset 0 0 0 2px #ffc9c9; }
+  .pdot.done { background:#ff8787; box-shadow:none; }
+  .pdot.now { background:#ffd43b; box-shadow:0 0 0 4px #fff3bf; }
+  #cardZone { flex:1 1 auto; display:flex; align-items:center; justify-content:center; position:relative; min-height:0; }
   #card {
-    width: 190px; height: 190px; border-radius: 32px; background: #fff;
-    box-shadow: 0 14px 0 rgba(0,0,0,.10), 0 4px 18px rgba(0,0,0,.12);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: transform .15s; border: 6px solid #fff;
+    width:190px; height:190px; border-radius:32px; background:#fff;
+    box-shadow:0 14px 0 rgba(0,0,0,.10),0 4px 18px rgba(0,0,0,.12);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:transform .15s; border:6px solid #fff;
   }
-  #card:active { transform: scale(.96); }
-  #card.selected { border-color: #ffd43b; transform: translateY(-10px) scale(1.04); }
-  #card svg { width: 130px; height: 130px; }
-  #card.fly { trans
+  #card:active { transform:scale(.96); }
+  #card.selected { border-color:#ffd43b; transform:translateY(-10px) scale(1.04); }
+  #card svg { width:130px; height:130px; }
+  #card.fly { transition:transform .5s cubic-bezier(.5,-0.4,.6,1.3), opacity .5s; }
+  #card.shake { animation:shake .4s; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-14px)} 40%{transform:translateX(14px)} 60%{transform:translateX(-10px)} 80%{transform:translateX(10px)} }
+  #baskets { flex:0 0 auto; display:flex; gap:14px; justify-content:center; align-items:flex-end; padding:10px 12px 22px; flex-wrap:wrap; }
+  .basket {
+    width:120px; height:120px; border-radius:24px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    background:#fff; box-shadow:0 8px 0 rgba(0,0,0,.10);
+    transition:transform .15s; position:relative; overflow:hidden;
+  }
+  .basket:active { transform:scale(.95); }
+  .basket svg { width:78px; height:78px; }
+  .basket .swatch { width:100%; height:100%; }
+  .basket.hint { animation:glow 1s ease-in-out infinite; }
+  @keyframes glow { 0%,100%{box-shadow:0 8px 0 rgba(0,0,0,.10),0 0 0 0 rgba(255,212,59,0);} 50%{box-shadow:0 8px 0 rgba(0,0,0,.10),0 0 26px 8px rgba(255,212,59,.9);} }
+  #char { position:absolute; bottom:150px; right:10px; width:130px; pointer-events:none; opacity:0; transform:translateY(20px); transition:opacity .4s, transform .4s; z-index:30; }
+  #char.show { opacity:1; transform:translateY(0); }
+  #char img { width:100%; filter:drop-shadow(0 6px 8px rgba(0,0,0,.2)); }
+  #finger { position:fixed; font-size:50px; z-index:40; pointer-events:none; display:none; transition:top .3s, left .3s; animation:point 1s ease-in-out infinite; filter:drop-shadow(0 3px 3px rgba(0,0,0,.25)); }
+  @keyframes point { 0%,100%{transform:translate(0,0);} 50%{transform:translate(-12px,0);} }
+  #startScreen, #endScreen { position:absolute; inset:0; z-index:50; background:linear-gradient(160deg,#fff4e0 0%,#ffe8f0 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; }
+  #startScreen.hide, #endScreen.hide { display:none; }
+  .bigTitle { font-size:50px; font-weight:900; color:#ff6b6b; letter-spacing:4px; text-shadow:0 4px 0 #fff,0 6px 0 rgba(0,0,0,.08); }
+  .startChars { display:flex; gap:10px; align-items:flex-end; }
+  .startChars img { width:130px; filter:drop-shadow(0 6px 8px rgba(0,0,0,.2)); }
+  .bigBtn { padding:20px 60px; font-size:32px; font-weight:900; color:#fff; background:linear-gradient(90deg,#ff8787,#ffa94d); border:none; border-radius:999px; cursor:pointer; box-shadow:0 8px 0 rgba(0,0,0,.15); letter-spacing:4px; }
+  .bigBtn:active { transform:translateY(4px); box-shadow:0 4px 0 rgba(0,0,0,.15); }
+  #endTitle { font-size:44px; font-weight:900; color:#ff6b6b; text-align:center; line-height:1.4; }
+  @media (max-width:600px) {
+    .basket { width:88px; height:88px; }
+    .basket svg { width:58px; height:58px; }
+    #card { width:150px; height:150px; }
+    #card svg { width:100px; height:100px; }
+    #ruleBar { font-size:21px; padding:10px 20px; }
+    .bigTitle { font-size:38px; }
+    #char { width:100px; bottom:130px; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="ruleBar" class="color">現在按顏色分</div>
+  <div id="progress"></div>
+  <div id="cardZone"><div id="card"></div></div>
+  <div id="baskets"></div>
+  <div id="char"><img id="charImg" src="" alt=""></div>
+
+  <div id="startScreen">
+    <div class="bigTitle">規則變變變</div>
+    <div class="startChars">
+      <img src="awei_happy.png" alt="阿威">
+      <img src="xiaoqing_happy.png" alt="小晴">
+    </div>
+    <button class="bigBtn" id="startBtn">開始玩</button>
+  </div>
+
+  <div id="endScreen" class="hide">
+    <div class="startChars">
+      <img src="awei_happy.png" alt="阿威">
+      <img src="xiaoqing_happy.png" alt="小晴">
+    </div>
+    <div id="endTitle">全部分完囉！<br>你好厲害！</div>
+    <button class="bigBtn" id="againBtn">再玩一次</button>
+  </div>
+</div>
+
+<div id="finger">👈</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+  function speak(text){
+    try { const u=new SpeechSynthesisUtterance(text); u.lang="zh-TW"; u.rate=0.95; window.speechSynthesis.speak(u); } catch(e){}
+  }
+
+  let audioCtx=null;
+  function getCtx(){ if(!audioCtx){ try{ audioCtx=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ audioCtx=null; } } return audioCtx; }
+  function playCorrect(){
+    const ctx=getCtx(); if(!ctx) return; const now=ctx.currentTime;
+    [[880,0],[1320,0.12]].forEach(function(p){ const freq=p[0],t=p[1];
+      const osc=ctx.createOscillator(); const gain=ctx.createGain();
+      osc.type="sine"; osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,now+t);
+      gain.gain.exponentialRampToValueAtTime(0.3,now+t+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+t+0.18);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now+t); osc.stop(now+t+0.2);
+    });
+  }
+  function playWrong(){
+    const ctx=getCtx(); if(!ctx) return; const now=ctx.currentTime;
+    const osc=ctx.createOscillator(); const gain=ctx.createGain();
+    osc.type="triangle"; osc.frequency.setValueAtTime(220,now);
+    osc.frequency.exponentialRampToValueAtTime(150,now+0.18);
+    gain.gain.setValueAtTime(0.0001,now);
+    gain.gain.exponentialRampToValueAtTime(0.25,now+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+0.25);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now+0.28);
+  }
+
+  const CHARS={ awei_happy:"awei_happy.png", awei_smile:"awei_smile.png", awei_think:"awei_think.png", xq_happy:"xiaoqing_happy.png", xq_smile:"xiaoqing_smile.png", xq_think:"xiaoqing_think.png" };
+  const COLORS={ red:{name:"紅色",hex:"#ff6b6b"}, blue:{name:"藍色",hex:"#4dabf7"}, yellow:{name:"黃色",hex:"#ffd43b"} };
+  const SHAPES={
+    rabbit:{name:"兔子",svg:'<svg viewBox="0 0 100 100"><g fill="currentColor"><ellipse cx="35" cy="22" rx="9" ry="20"/><ellipse cx="65" cy="22" rx="9" ry="20"/><circle cx="50" cy="62" r="30"/></g></svg>'},
+    cat:{name:"貓咪",svg:'<svg viewBox="0 0 100 100"><g fill="currentColor"><polygon points="22,20 38,45 12,45"/><polygon points="78,20 88,45 62,45"/><circle cx="50" cy="58" r="32"/></g></svg>'},
+    star:{name:"星星",svg:'<svg viewBox="0 0 100 100"><polygon fill="currentColor" points="50,6 62,38 96,38 68,58 79,92 50,71 21,92 32,58 4,38 38,38"/></svg>'},
+    heart:{name:"愛心",svg:'<svg viewBox="0 0 100 100"><path fill="currentColor" d="M50 86 C 12 56, 8 28, 30 20 C 42 16, 50 28, 50 34 C 50 28, 58 16, 70 20 C 92 28, 88 56, 50 86 Z"/></svg>'}
+  };
+  const LEVELS=[
+    {colors:["red","blue"],shapes:["rabbit","cat"]},
+    {colors:["red","blue","yellow"],shapes:["rabbit","cat","star"]},
+    {colors:["red","blue","yellow"],shapes:["rabbit","cat","star","heart"]}
+  ];
+  const PLAN=[
+    {lv:0,rule:"color",hint:true},{lv:0,rule:"color",hint:false},{lv:0,rule:"shape",hint:true},{lv:0,rule:"shape",hint:false},{lv:0,rule:"color",hint:true},
+    {lv:1,rule:"color",hint:false},{lv:1,rule:"shape",hint:true},{lv:1,rule:"shape",hint:false},{lv:1,rule:"color",hint:true},{lv:1,rule:"color",hint:false},
+    {lv:2,rule:"shape",hint:true},{lv:2,rule:"shape",hint:false},{lv:2,rule:"color",hint:true},{lv:2,rule:"color",hint:false},{lv:2,rule:"shape",hint:true}
+  ];
+
+  let qIndex=0,current=null,selected=false,curRule="color",curLevel=0,lastRule=null,charTurn=0;
+
+  const ruleBar=document.getElementById("ruleBar");
+  const cardEl=document.getElementById("card");
+  const basketsEl=document.getElementById("baskets");
+  const progressEl=document.getElementById("progress");
+  const charBox=document.getElementById("char");
+  const charImg=document.getElementById("charImg");
+  const finger=document.getElementById("finger");
+
+  function buildProgress(){ progressEl.innerHTML=""; for(let i=0;i<PLAN.length;i++){ const d=document.createElement("div"); d.className="pdot"; progressEl.appendChild(d); } }
+  function refreshProgress(){ [].forEach.call(progressEl.children,function(d,i){ d.className="pdot"+(i<qIndex?" done":i===qIndex?" now":""); }); }
+  function showChar(key){ charImg.src=CHARS[key]; charBox.classList.add("show"); }
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  function runTutorial(done){
+    curRule="color"; curLevel=0;
+    current={color:"red",shape:"rabbit"};
+    ruleBar.className="color"; ruleBar.textContent="現在按顏色分";
+    renderCard(); renderBaskets(LEVELS[0]);
+    speak("我們來玩分類遊戲。看這一張卡片。"); pointFinger(cardEl);
+    setTimeout(function(){ speak("上面會說，現在要按什麼分。"); pointFinger(ruleBar); },3200);
+    setTimeout(function(){ speak("先點卡片，再點對的籃子，就可以了。"); pointFinger(basketsEl); },6600);
+    setTimeout(function(){ finger.style.display="none"; done(); },10200);
+  }
+
+  function nextQuestion(){
+    if(qIndex>=PLAN.length){ endGame(); return; }
+    const step=PLAN[qIndex];
+    curLevel=step.lv; curRule=step.rule;
+    const lv=LEVELS[curLevel];
+    current={color:pick(lv.colors),shape:pick(lv.shapes)};
+    selected=false;
+    ruleBar.className=curRule;
+    ruleBar.textContent=curRule==="color"?"現在按顏色分":"現在按形狀分";
+    const switched=(lastRule!==null && lastRule!==curRule);
+    if(switched){ ruleBar.classList.add("pop"); setTimeout(function(){ ruleBar.classList.remove("pop"); },320); }
+    lastRule=curRule;
+    showChar(charTurn%2===0?"awei_happy":"xq_happy"); charTurn++;
+    renderCard(); renderBaskets(lv); refreshProgress();
+    if(step.hint){ setTimeout(highlightCorrectBasket, switched?900:400); }
+  }
+  function renderCard(){ cardEl.className=""; cardEl.style.color=COLORS[current.color].hex; cardEl.innerHTML=SHAPES[current.shape].svg; cardEl.style.transform=""; cardEl.style.opacity="1"; }
+  function renderBaskets(lv){
+    basketsEl.innerHTML="";
+    const keys=curRule==="color"?lv.colors:lv.shapes;
+    keys.forEach(function(k){
+      const b=document.createElement("div"); b.className="basket"; b.dataset.key=k;
+      if(curRule==="color"){ const sw=document.createElement("div"); sw.className="swatch"; sw.style.background=COLORS[k].hex; b.appendChild(sw); }
+      else { b.innerHTML=SHAPES[k].svg; b.style.color="#868e96"; }
+      b.addEventListener("click",function(){ onBasket(k,b); });
+      basketsEl.appendChild(b);
+    });
+  }
+  function highlightCorrectBasket(){
+    const correct=curRule==="color"?current.color:current.shape;
+    [].forEach.call(basketsEl.children,function(b){ if(b.dataset.key===correct){ b.classList.add("hint"); } });
+  }
+  cardEl.addEventListener("click",function(){
+    if(qIndex>=PLAN.length) return;
+    getCtx(); selected=!selected; cardEl.classList.toggle("selected",selected);
+  });
+  function onBasket(key,basketEl){
+    if(qIndex>=PLAN.length) return;
+    if(!selected){ return; }
+    const correct=curRule==="color"?current.color:current.shape;
+    if(key===correct){
+      playCorrect(); clearHints();
+      const rect=basketEl.getBoundingClientRect(); const crect=cardEl.getBoundingClientRect();
+      cardEl.classList.add("fly");
+      cardEl.style.transform="translate("+(rect.left+rect.width/2-(crect.left+crect.width/2))+"px,"+(rect.top+rect.height/2-(crect.top+crect.height/2))+"px) scale(.3)";
+      cardEl.style.opacity="0"; cardEl.classList.remove("selected"); selected=false;
+      qIndex++; setTimeout(nextQuestion,850);
+    } else {
+      playWrong(); cardEl.classList.add("shake"); setTimeout(function(){ cardEl.classList.remove("shake"); },420);
+    }
+  }
+  function clearHints(){ [].forEach.call(basketsEl.children,function(b){ b.classList.remove("hint"); }); }
+  function pointFinger(targetEl){
+    if(!targetEl){ finger.style.display="none"; return; }
+    const r=targetEl.getBoundingClientRect();
+    finger.style.display="block";
+    finger.style.top=(r.top+r.height/2-25)+"px";
+    finger.style.left=(r.right+6)+"px";
+  }
+  function endGame(){ finger.style.display="none"; charBox.classList.remove("show"); document.getElementById("endScreen").classList.remove("hide"); playCorrect(); }
+  function startGame(){
+    qIndex=0; lastRule=null; selected=false; charTurn=0;
+    getCtx();
+    document.getElementById("startScreen").classList.add("hide");
+    document.getElementById("endScreen").classList.add("hide");
+    buildProgress();
+    runTutorial(function(){ lastRule=null; nextQuestion(); });
+  }
+
+  document.getElementById("startBtn").addEventListener("click",startGame);
+  document.getElementById("againBtn").addEventListener("click",startGame);
+
+});
+</script>
+</body>
+</html>
