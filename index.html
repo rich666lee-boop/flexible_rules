@@ -259,7 +259,6 @@ function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* ===== 開頭講解：語音＋手指帶一次，結束後不再出現 ===== */
 function runTutorial(done){
-  // 先擺一張示範卡與一組籃子（2×2 顏色規則）
   curRule = "color"; curLevel = 0;
   const lv = LEVELS[0];
   current = { color: "red", shape: "rabbit" };
@@ -268,23 +267,19 @@ function runTutorial(done){
   renderCard();
   renderBaskets(lv);
 
-  // 第一步：指卡片
   speak("我們來玩分類遊戲。看這一張卡片。");
   pointFinger(cardEl);
 
-  // 第二步：指規則條
   setTimeout(()=>{
     speak("上面會說，現在要按什麼分。");
     pointFinger(ruleBar);
   }, 3200);
 
-  // 第三步：指籃子
   setTimeout(()=>{
     speak("先點卡片，再點對的籃子，就可以了。");
     pointFinger(basketsEl);
   }, 6600);
 
-  // 講解結束：收掉手指，正式開始（之後全程無語音、無手指）
   setTimeout(()=>{
     finger.style.display = "none";
     done();
@@ -304,7 +299,8 @@ function nextQuestion(){
   if(switched){
     ruleBar.classList.add("pop");
     setTimeout(()=>ruleBar.classList.remove("pop"), 320);
-    showChar(pick(["awei_think","xq_think"]));
+    // 規則綁角色：顏色→小晴、形狀→阿威，兩人一定都會出現
+    showChar(curRule==="color" ? "xq_think" : "awei_think");
   }
   lastRule = curRule;
   renderCard();
@@ -391,7 +387,6 @@ function startGame(){
   document.getElementById("startScreen").classList.add("hide");
   document.getElementById("endScreen").classList.add("hide");
   buildProgress();
-  // 先跑講解（語音＋手指），結束後才正式出題
   runTutorial(()=>{
     lastRule = null;
     nextQuestion();
