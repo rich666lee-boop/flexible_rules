@@ -139,7 +139,7 @@
 <div id="finger">👈</div>
 
 <script>
-/* 語音：只用在「規則切換宣布」這一處 */
+/* 語音：只用在開頭講解 */
 function speak(text){
   try {
     const u = new SpeechSynthesisUtterance(text);
@@ -157,7 +157,6 @@ function getCtx(){
   }
   return audioCtx;
 }
-// 答對：清脆上行兩音（叮咚）
 function playCorrect(){
   const ctx = getCtx(); if(!ctx) return;
   const now = ctx.currentTime;
@@ -172,7 +171,6 @@ function playCorrect(){
     osc.start(now+t); osc.stop(now+t+0.2);
   });
 }
-// 答錯：低沉短促一聲（嘟）
 function playWrong(){
   const ctx = getCtx(); if(!ctx) return;
   const now = ctx.currentTime;
@@ -259,6 +257,40 @@ function showChar(key, ms=2600){
 }
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
+/* ===== 開頭講解：語音＋手指帶一次，結束後不再出現 ===== */
+function runTutorial(done){
+  // 先擺一張示範卡與一組籃子（2×2 顏色規則）
+  curRule = "color"; curLevel = 0;
+  const lv = LEVELS[0];
+  current = { color: "red", shape: "rabbit" };
+  ruleBar.className = "color";
+  ruleBar.textContent = "現在按顏色分";
+  renderCard();
+  renderBaskets(lv);
+
+  // 第一步：指卡片
+  speak("我們來玩分類遊戲。看這一張卡片。");
+  pointFinger(cardEl);
+
+  // 第二步：指規則條
+  setTimeout(()=>{
+    speak("上面會說，現在要按什麼分。");
+    pointFinger(ruleBar);
+  }, 3200);
+
+  // 第三步：指籃子
+  setTimeout(()=>{
+    speak("先點卡片，再點對的籃子，就可以了。");
+    pointFinger(basketsEl);
+  }, 6600);
+
+  // 講解結束：收掉手指，正式開始（之後全程無語音、無手指）
+  setTimeout(()=>{
+    finger.style.display = "none";
+    done();
+  }, 10200);
+}
+
 function nextQuestion(){
   if(qIndex >= PLAN.length){ endGame(); return; }
   const step = PLAN[qIndex];
@@ -273,16 +305,14 @@ function nextQuestion(){
     ruleBar.classList.add("pop");
     setTimeout(()=>ruleBar.classList.remove("pop"), 320);
     showChar(pick(["awei_think","xq_think"]));
-    speak(curRule==="color" ? "規則變囉！現在我們要按顏色來分！" : "規則變囉！現在我們要按形狀來分！");
   }
   lastRule = curRule;
   renderCard();
   renderBaskets(lv);
   refreshProgress();
   if(step.hint){
-    setTimeout(()=>highlightCorrectBasket(), switched ? 1400 : 400);
+    setTimeout(()=>highlightCorrectBasket(), switched ? 900 : 400);
   }
-  pointFinger(cardEl);
 }
 function renderCard(){
   cardEl.className = "";
@@ -310,23 +340,22 @@ function renderBaskets(lv){
 function highlightCorrectBasket(){
   const correct = curRule==="color" ? current.color : current.shape;
   [...basketsEl.children].forEach(b=>{
-    if(b.dataset.key === correct){ b.classList.add("hint"); pointFinger(b); }
+    if(b.dataset.key === correct){ b.classList.add("hint"); }
   });
 }
 cardEl.addEventListener("click", ()=>{
   if(qIndex >= PLAN.length) return;
-  getCtx();  // 第一次互動時喚醒音訊
+  getCtx();
   selected = !selected;
   cardEl.classList.toggle("selected", selected);
-  pointFinger(selected ? basketsEl : cardEl);
 });
 function onBasket(key, basketEl){
   if(qIndex >= PLAN.length) return;
-  if(!selected){ pointFinger(cardEl); return; }
+  if(!selected){ return; }
   const correct = curRule==="color" ? current.color : current.shape;
   if(key === correct){
     playCorrect();
-    finger.style.display = "none"; clearHints();
+    clearHints();
     const rect = basketEl.getBoundingClientRect();
     const crect = cardEl.getBoundingClientRect();
     cardEl.classList.add("fly");
@@ -358,16 +387,18 @@ function endGame(){
 }
 function startGame(){
   qIndex = 0; lastRule = null; selected = false;
-  getCtx();  // 喚醒音訊
+  getCtx();
   document.getElementById("startScreen").classList.add("hide");
   document.getElementById("endScreen").classList.add("hide");
   buildProgress();
-  showChar("awei_smile", 2200);
-  setTimeout(nextQuestion, 900);
+  // 先跑講解（語音＋手指），結束後才正式出題
+  runTutorial(()=>{
+    lastRule = null;
+    nextQuestion();
+  });
 }
 document.getElementById("startBtn").addEventListener("click", startGame);
 document.getElementById("againBtn").addEventListener("click", startGame);
-window.addEventListener("resize", ()=>{ if(finger.style.display==="block" && selected) pointFinger(basketsEl); });
 </script>
 </body>
 </html>
